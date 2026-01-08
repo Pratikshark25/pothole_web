@@ -1,0 +1,195 @@
+# ============================================
+# Environment Variables (CRITICAL - NEVER COMMIT)
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+*.env
+**/.env
+**/.env.*
+.development
+.production
+*.development
+*.production
+
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+**/node_modules/
+client/node_modules/
+server/node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ============================================
+# Production Builds
+# ============================================
+dist/
+dist-ssr/
+build/
+.next/
+out/
+client/dist/
+client/build/
+server/dist/
+server/build/
+
+# ============================================
+# Logs
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+combined.log
+error.log
+access.log
+
+# ============================================
+# Uploads and User Content
+# ============================================
+uploads/
+server/uploads/
+temp/
+tmp/
+*.tmp
+
+# ============================================
+# Database Files
+# ============================================
+*.sqlite
+*.sqlite3
+*.db
+*.sql
+*.dump
+
+# ============================================
+# Secret Keys and Certificates (CRITICAL)
+# ============================================
+*.key
+*.pem
+*.p12
+*.p8
+*.jks
+*.keystore
+*.cert
+*.crt
+*.pfx
+debug.keystore
+*.mobileprovision
+secrets/
+config/secrets/
+server/config/secrets/
+private/
+credentials/
+
+# ============================================
+# API Keys and Tokens (CRITICAL)
+# ============================================
+.apikeys
+api-keys.json
+tokens.json
+auth-secrets.json
+
+# ============================================
+# MongoDB and Database Connections
+# ============================================
+mongo-data/
+mongodb/
+db-backup/
+
+# ============================================
+# OS Files
+# ============================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+Desktop.ini
+
+# ============================================
+# IDE and Editor Files
+# ============================================
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json.example
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+.project
+.classpath
+.settings/
+
+# ============================================
+# Testing and Coverage
+# ============================================
+coverage/
+.nyc_output/
+*.lcov
+.coverage
+htmlcov/
+test-results/
+.pytest_cache/
+
+# ============================================
+# Python (for AI detection scripts)
+# ============================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+*.egg-info/
+dist-py/
+
+# ============================================
+# Misc
+# ============================================
+.cache/
+.parcel-cache/
+.eslintcache
+*.pid
+*.seed
+*.pid.lock
+.npm/
+.yarn/
+.pnp.*
+*.local
+
+# ============================================
+# Sensitive Configuration Files
+# ============================================
+config.local.js
+config.local.json
+server/config/db.local.js
+jwt-secret.txt
+
+# ============================================
+# Backup Files
+# ============================================
+*.bak
+*.backup
+*.old
+*-backup.*

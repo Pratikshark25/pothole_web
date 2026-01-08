@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+/* Dark Glassmorphism Popup for Leaflet */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: #fff !important;
+  background: rgba(220, 38, 38, 0.8) !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+  line-height: 24px !important;
+  text-align: center !important;
+  right: 8px !important;
+  top: 8px !important;
+  transition: all 0.3s ease !important;
+}
+
+.leaflet-container a.leaflet-popup-close-button:hover {
+  background: rgba(239, 68, 68, 1) !important;
+  transform: scale(1.1) !important;
+}
