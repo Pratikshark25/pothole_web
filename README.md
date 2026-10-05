@@ -6,7 +6,6 @@ This project consists of a full-stack web application for mapping potholes. The 
 
 ## Tech stack Dev setup
 
-TODO(sairiteshdomakuntla): Fill this section based on your analysis.
 Frontend
 
 React.js + Tailwind CSS (UI)
@@ -31,15 +30,11 @@ REST APIs (for web + mobile)
 
 ## DB Dev setup
 
-TODO(Rasagna2810): Fill this section based on your analysis.
-
 **Database** :MongoDb
 
 **Files(image/video)**:AWS S3
 
 ## Data flow diagram
-
-TODO(MohitKarthiekeya): Fill this section based on your analysis.
 
 Here’s the concise summary:
 
@@ -68,7 +63,6 @@ Here’s the concise summary:
 
 ## Database schema
 
-TODO(gaddalecharmi): Fill this section based on your analysis.
 
 **The basic database schema for the Pothole Mapper project using Mongoose (MongoDB) includes the three key models:**
 
@@ -80,7 +74,6 @@ TODO(gaddalecharmi): Fill this section based on your analysis.
 
 ## List of APIs
 
-TODO(gaddalecharmi): Fill this section based on your analysis.
 
 We require the following API's: 
 
@@ -105,8 +98,6 @@ We require the following API's:
 -Your REST API Endpoints (Custom MERN)
 
 ## Security
-
-TODO(pthanmayee) : Fill this section based on your analysis.
 
 1. Authentication
    
