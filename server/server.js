@@ -5,7 +5,7 @@ require('dotenv').config();
 const connect = require('./config/db');
 
 const app = exp();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const CLIENT_ORIGIN = process.env.CLIENT_ORIGIN; 
 
 // If cookies are used cross-site (Vercel -> Render/Server), trust proxy
@@ -45,6 +45,11 @@ app.get('/api/hello', (req, res) => {
   res.json({ message: 'Hello from server!' });
 });
 
+app.get('/api/health', (req, res) => {
+  const connected = require('mongoose').connection.readyState === 1;
+  res.status(connected ? 200 : 503).json({ status: connected ? 'ok' : 'unavailable', database: connected ? 'connected' : 'disconnected' });
+});
+
 // Auth routes
 app.use('/api/auth', require('./routes/auth'));
 
@@ -52,6 +57,9 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/report', require('./routes/reportroute'));
 
 // Connect DB, then start server
-connect().then(() => {
-  app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
-});
+connect()
+  .then(() => app.listen(PORT, () => console.log(`Server listening on port ${PORT}`)))
+  .catch((error) => {
+    console.error('Server not started because MongoDB is unavailable:', error.message);
+    process.exit(1);
+  });

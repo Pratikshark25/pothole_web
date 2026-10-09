@@ -2,8 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { API_BASE } from '../config/api';
 
+const accessTokenNeedsRefresh = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    // Refresh shortly before expiry so a dashboard poll never sends a known
+    // expired token to /auth/me.
+    return !payload.exp || payload.exp * 1000 <= Date.now() + 30_000;
+  } catch {
+    return true;
+  }
+};
+
 const Dashboard = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const [potholes, setPotholes] = useState({
     reported: [],
     underRepair: [],
@@ -84,11 +95,55 @@ const Dashboard = () => {
   // Fetch reward data
   const fetchRewardData = async () => {
     try {
-      const res = await fetch(`${API_BASE}/auth/me`, {
+      const refreshAccessToken = async () => {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) return null;
+
+        const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken })
+        });
+
+        if (!refreshResponse.ok) return null;
+
+        const refreshed = await refreshResponse.json();
+        localStorage.setItem('accessToken', refreshed.accessToken);
+        localStorage.setItem('refreshToken', refreshed.refreshToken);
+        return refreshed.accessToken;
+      };
+
+      let accessToken = localStorage.getItem('accessToken');
+      if (!accessToken || accessTokenNeedsRefresh(accessToken)) {
+        accessToken = await refreshAccessToken();
+      }
+
+      if (!accessToken) {
+        await logout();
+        return;
+      }
+
+      let res = await fetch(`${API_BASE}/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${accessToken}`
         }
       });
+
+      // A token may be revoked before its expiry. Refresh once, then avoid
+      // continuing the interval if the session cannot be renewed.
+      if (res.status === 401) {
+        accessToken = await refreshAccessToken();
+        if (!accessToken) {
+          await logout();
+          return;
+        }
+        res = await fetch(`${API_BASE}/auth/me`, {
+          headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+      }
+
+      if (!res.ok) return;
+
       const data = await res.json();
       if (data.success) {
         const newAchievements = data.user.achievements || [];

@@ -66,7 +66,7 @@ const detectPotholeWithRoboflowAPI = async (base64Image) => {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      timeout: 10000 // 10 second timeout
+      timeout: 30000 // 30 second timeout
     });
     
     const data = response.data;
@@ -126,13 +126,22 @@ const detectPotholeWithRoboflowAPI = async (base64Image) => {
     
   } catch (error) {
     console.error('Roboflow API error:', error.message);
-    
-    // Check if it's an API key error
-    if (error.response?.data?.error) {
-      throw new Error(`Roboflow API: ${error.response.data.error.message || 'Authentication failed'}`);
-    }
-    
-    throw new Error(`Detection failed: ${error.message}`);
+
+    // Roboflow may return its message as `error`, `error.message`, or
+    // `message`. Preserve that safe upstream detail for the UI and logs.
+    const upstreamData = error.response?.data;
+    const upstreamMessage =
+      upstreamData?.error?.message ||
+      upstreamData?.error ||
+      upstreamData?.message ||
+      error.message;
+    const status = error.response?.status;
+
+    throw new Error(
+      status
+        ? `Roboflow rejected the request (${status}): ${upstreamMessage}`
+        : `Roboflow request failed: ${upstreamMessage}`
+    );
   }
 };
 

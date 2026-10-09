@@ -3,7 +3,7 @@ import Login from './Login';
 import Signup from './Signup';
 
 const AuthModal = ({ isOpen, onClose }) => {
-  const [isLoginMode, setIsLoginMode] = useState(false);
+  const [isLoginMode, setIsLoginMode] = useState(true);
 
   if (!isOpen) return null;
 

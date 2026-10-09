@@ -15,6 +15,7 @@ const ReportPothole = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
+  const [isLocating, setIsLocating] = useState(false);
   const [detectionResult, setDetectionResult] = useState(null);
   const [validationError, setValidationError] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -29,19 +30,25 @@ const ReportPothole = () => {
       reader.onerror = (error) => reject(error);
     });
 
+  const hasValidGpsCoordinates = ({ latitude, longitude } = {}) => {
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+
+    return Number.isFinite(lat) && Number.isFinite(lng) &&
+      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  };
+
   // Extract GPS coordinates from image EXIF data or GPS overlay text
   const extractGpsData = async (file) => {
     try {
-      // First, try to extract from EXIF metadata
-      const exifData = await exifr.parse(file, {
-        gps: true,
-        pick: ['latitude', 'longitude']
-      });
+      // exifr.gps is purpose-built for GPS EXIF and works more reliably than
+      // a filtered general parse for photos from phone cameras.
+      const exifData = await exifr.gps(file);
       
-      if (exifData && exifData.latitude && exifData.longitude) {
+      if (hasValidGpsCoordinates(exifData)) {
         const gps = {
-          latitude: exifData.latitude,
-          longitude: exifData.longitude,
+          latitude: Number(exifData.latitude),
+          longitude: Number(exifData.longitude),
           source: 'EXIF'
         };
         setGpsData(gps);
@@ -64,10 +71,10 @@ const ReportPothole = () => {
         
         const ocrData = await ocrResponse.json();
         
-        if (ocrData.success && ocrData.latitude && ocrData.longitude) {
+        if (ocrData.success && hasValidGpsCoordinates(ocrData)) {
           const gps = {
-            latitude: ocrData.latitude,
-            longitude: ocrData.longitude,
+            latitude: Number(ocrData.latitude),
+            longitude: Number(ocrData.longitude),
             source: 'OCR'
           };
           setGpsData(gps);
@@ -134,6 +141,56 @@ const ReportPothole = () => {
     } finally {
       setIsValidating(false);
     }
+  };
+
+  const useCurrentDeviceLocation = () => {
+    if (!formData.image) {
+      setValidationError('Choose a photo before using your current location.');
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      setValidationError('This browser does not support location services.');
+      return;
+    }
+
+    if (!window.isSecureContext) {
+      setValidationError('Device location requires HTTPS. Open the app at https://… on your phone, or use http://localhost:5173 when testing on this computer.');
+      return;
+    }
+
+    setIsLocating(true);
+    setValidationError(null);
+
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        const gps = {
+          latitude: coords.latitude,
+          longitude: coords.longitude,
+          source: 'Device location'
+        };
+
+        setGpsData(gps);
+        setFormData(prev => ({
+          ...prev,
+          location: `${gps.latitude.toFixed(6)}, ${gps.longitude.toFixed(6)}`
+        }));
+        setIsLocating(false);
+
+        // Continue with normal pothole validation after the user explicitly
+        // supplies their current location.
+        const base64 = await toBase64(formData.image);
+        await validateImage(base64);
+      },
+      (error) => {
+        const message = error.code === error.PERMISSION_DENIED
+          ? 'Location permission was denied. Allow location access in your browser and try again.'
+          : 'Unable to get your current location. Please try again outside or enable Location Services.';
+        setValidationError(message);
+        setIsLocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 }
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -351,8 +408,18 @@ const ReportPothole = () => {
                   disabled={isValidating}
                 />
                 <p className="text-sm text-gray-400 mt-3">
-                  Only images with GPS location data are accepted
+                  GPS is read from the original photo. If its metadata is unavailable, use your current device location below.
                 </p>
+                {formData.image && !gpsData && (
+                  <button
+                    type="button"
+                    onClick={useCurrentDeviceLocation}
+                    disabled={isLocating || isValidating}
+                    className="mt-4 rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {isLocating ? 'Getting your location...' : 'Use my current device location'}
+                  </button>
+                )}
               </div>
               
               {/* Image Preview */}
@@ -408,6 +475,17 @@ const ReportPothole = () => {
                         <li>Take a photo of the pothole</li>
                         <li>OR use a camera app that adds GPS overlay text to the image</li>
                       </ol>
+                      <button
+                        type="button"
+                        onClick={useCurrentDeviceLocation}
+                        disabled={isLocating || isValidating}
+                        className="mt-3 rounded-md bg-blue-600 px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {isLocating ? 'Getting your location...' : 'Use my current device location'}
+                      </button>
+                      <p className="mt-2 text-xs text-gray-400">
+                        Use this only when you are at the pothole location.
+                      </p>
                     </div>
                   )}
                   

@@ -3,6 +3,24 @@ import { API_BASE } from '../config/api';
 
 const AuthContext = createContext();
 
+const AUTH_REQUEST_TIMEOUT_MS = 8000;
+
+const fetchWithTimeout = async (url, options = {}, timeoutMs = AUTH_REQUEST_TIMEOUT_MS) => {
+  const controller = new AbortController();
+  const timeoutId = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, { ...options, signal: controller.signal });
+  } catch (error) {
+    if (error.name === 'AbortError') {
+      throw new Error('The server took too long to respond. Please make sure the backend is running.');
+    }
+    throw error;
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+};
+
 const normalizeUser = (user) => {
   if (!user) return null;
   return {
@@ -56,7 +74,8 @@ const initialState = {
   isAuthenticated: false,
   user: null,
   token: null,
-  loading: true,
+  // Do not disable the login form while checking a previously saved token.
+  loading: false,
   error: null
 };
 
@@ -75,7 +94,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
+      const response = await fetchWithTimeout(`${API_BASE}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -89,7 +108,7 @@ export const AuthProvider = ({ children }) => {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           try {
-            const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+            const refreshResponse = await fetchWithTimeout(`${API_BASE}/auth/refresh`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ refreshToken })
@@ -100,7 +119,7 @@ export const AuthProvider = ({ children }) => {
               localStorage.setItem('accessToken', refreshData.accessToken);
               localStorage.setItem('refreshToken', refreshData.refreshToken);
 
-              const userResponse = await fetch(`${API_BASE}/auth/me`, {
+              const userResponse = await fetchWithTimeout(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${refreshData.accessToken}` }
               });
 
@@ -142,7 +161,7 @@ export const AuthProvider = ({ children }) => {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
+      const response = await fetchWithTimeout(`${API_BASE}/auth/me`, {
         headers: { 'Authorization': `Bearer ${token}` }
       });
 
@@ -161,7 +180,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
-          const refreshResponse = await fetch(`${API_BASE}/auth/refresh`, {
+          const refreshResponse = await fetchWithTimeout(`${API_BASE}/auth/refresh`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ refreshToken })
@@ -173,7 +192,7 @@ export const AuthProvider = ({ children }) => {
             localStorage.setItem('accessToken', refreshData.accessToken);
             localStorage.setItem('refreshToken', refreshData.refreshToken);
 
-            const userResponse = await fetch(`${API_BASE}/auth/me`, {
+            const userResponse = await fetchWithTimeout(`${API_BASE}/auth/me`, {
               headers: { 'Authorization': `Bearer ${refreshData.accessToken}` }
             });
 
@@ -207,7 +226,7 @@ export const AuthProvider = ({ children }) => {
 
     try {
 
-      const response = await fetch(`${API_BASE}/auth/signup`, {
+      const response = await fetchWithTimeout(`${API_BASE}/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(userData)
@@ -235,7 +254,7 @@ export const AuthProvider = ({ children }) => {
     dispatch({ type: 'LOGIN_START' });
 
     try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
+      const response = await fetchWithTimeout(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -271,9 +290,9 @@ export const AuthProvider = ({ children }) => {
     } catch (error) {
       dispatch({
         type: 'LOGIN_FAILURE',
-        payload: 'Network error. Please try again.'
+        payload: error.message || 'Network error. Please try again.'
       });
-      return { success: false, error: 'Network error. Please try again.' };
+      return { success: false, error: error.message || 'Network error. Please try again.' };
     }
   };
 

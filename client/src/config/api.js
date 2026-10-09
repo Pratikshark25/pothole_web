@@ -10,7 +10,7 @@ const getApiBaseUrl = () => {
   if (raw) return normalizeWithApi(raw);
 
   // Dev default (when no env set)
-  if (import.meta.env.DEV) return 'http://localhost:5000/api';
+  if (import.meta.env.DEV) return '/api';
 
   // Production fallback (Render service)
   return 'https://vnr-ibt-potholemapper.onrender.com/api';

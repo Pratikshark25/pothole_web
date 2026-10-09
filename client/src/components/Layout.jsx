@@ -6,11 +6,13 @@ import AuthModal from './auth/AuthModal';
 const Layout = () => {
   const { isAuthenticated, user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
     logout();
+    setIsMobileMenuOpen(false);
     navigate('/');
   };
 
@@ -37,9 +39,9 @@ const Layout = () => {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen bg-stone-50">
       {/* Header */}
-      <header className="bg-gradient-to-r from-gray-900/95 to-black/95 backdrop-blur-lg border-b border-white/10 text-white shadow-lg">
+      <header className="border-b border-stone-200 bg-stone-50 text-stone-900">
         <div className="max-w-8xl mx-auto px-5 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <Link to="/" className="flex items-center space-x-3 hover:opacity-90 transition-opacity">
@@ -49,7 +51,7 @@ const Layout = () => {
               </h1>
             </Link>
             
-            <nav className="flex space-x-2 items-center">
+            <nav className="hidden items-center space-x-2 lg:flex">
               {isAuthenticated ? (
                 <>
                   <div className="flex items-center space-x-3">
@@ -146,7 +148,39 @@ const Layout = () => {
                 </>
               )}
             </nav>
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(open => !open)}
+              className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium lg:hidden"
+              aria-expanded={isMobileMenuOpen}
+              aria-label="Toggle navigation menu"
+            >
+              {isMobileMenuOpen ? 'Close' : 'Menu'}
+            </button>
           </div>
+          {isMobileMenuOpen && (
+            <nav className="border-t border-stone-200 py-3 lg:hidden">
+              <div className="flex flex-col gap-2">
+                {isAuthenticated ? (
+                  <>
+                    <div className="px-3 py-2 text-sm text-stone-600">Signed in as {user?.name}</div>
+                    {user?.role === 'commuter' && <Link onClick={() => setIsMobileMenuOpen(false)} to="/report" className="rounded-lg px-3 py-2 hover:bg-stone-100">Report Pothole</Link>}
+                    {user?.role === 'commuter' && <Link onClick={() => setIsMobileMenuOpen(false)} to="/dashboard" className="rounded-lg px-3 py-2 hover:bg-stone-100">Dashboard</Link>}
+                    {user?.role === 'admin' && <Link onClick={() => setIsMobileMenuOpen(false)} to="/admin" className="rounded-lg px-3 py-2 hover:bg-stone-100">Admin Panel</Link>}
+                    {user?.role === 'municipality' && <Link onClick={() => setIsMobileMenuOpen(false)} to="/municipal" className="rounded-lg px-3 py-2 hover:bg-stone-100">Municipal Dashboard</Link>}
+                    <Link onClick={() => setIsMobileMenuOpen(false)} to="/map" className="rounded-lg px-3 py-2 hover:bg-stone-100">Map View</Link>
+                    <Link onClick={() => setIsMobileMenuOpen(false)} to="/profile" className="rounded-lg px-3 py-2 hover:bg-stone-100">Profile</Link>
+                    <button onClick={handleLogout} className="rounded-lg px-3 py-2 text-left hover:bg-stone-100">Logout</button>
+                  </>
+                ) : (
+                  <>
+                    <button onClick={() => { setShowAuthModal(true); setIsMobileMenuOpen(false); }} className="rounded-lg bg-orange-600 px-3 py-2 text-left font-medium text-white">Report Pothole</button>
+                    <button onClick={() => { setShowAuthModal(true); setIsMobileMenuOpen(false); }} className="rounded-lg border border-stone-300 px-3 py-2 text-left font-medium">Sign In</button>
+                  </>
+                )}
+              </div>
+            </nav>
+          )}
         </div>
       </header>
 
@@ -156,9 +190,9 @@ const Layout = () => {
       </main>
 
       {/* Footer */}
-      <footer className="bg-gradient-to-r from-gray-900/95 to-black/95 backdrop-blur-lg border-t border-white/10 text-white py-8 mt-16">
+      <footer className="border-t border-stone-200 bg-stone-50 text-stone-600 py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-gray-300">&copy; 2025 Pothole Mapper. Making roads safer, one pothole at a time.</p>
+          <p>&copy; 2026 Pothole Mapper. Making roads safer, one pothole at a time.</p>
         </div>
       </footer>
 

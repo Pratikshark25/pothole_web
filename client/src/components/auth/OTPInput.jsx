@@ -100,8 +100,8 @@ export default function () {
           }
         }
       `}</style>
-    <div className="flex justify-center items-center w-full h-screen gradient-bg">
-      <div className="glass-effect px-10 pt-10 pb-10 shadow-xl mx-auto w-90 max-w-lg rounded-2xl">
+    <div className="flex min-h-screen w-full items-center justify-center px-4 py-8 gradient-bg">
+      <div className="glass-effect w-full max-w-lg rounded-2xl px-5 py-8 shadow-xl sm:px-10 sm:py-10">
         <div className="mx-auto flex w-full max-w-md flex-col space-y-10">
           <div className="flex flex-col items-center justify-center text-center space-y-2">
             <div className="font-semibold text-3xl">
